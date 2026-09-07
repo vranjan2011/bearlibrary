@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bear Library Chess Tournament</title>
+<style>
+  :root{
+    --board-dark:#1C2E22;
+    --board-darker:#132018;
+    --ivory:#F3ECDB;
+    --ivory-2:#EAE1CB;
+    --walnut:#2A1D14;
+    --walnut-soft:#5C4A38;
+    --brass:#A9843F;
+    --brass-light:#C9A968;
+    --burgundy:#6E2A34;
+    --burgundy-light:#F4E4E6;
+    --line:#D8CCA9;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--walnut);
+    background-color:var(--board-dark);
+    background-image:
+      linear-gradient(45deg, rgba(0,0,0,0.14) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.14) 75%),
+      linear-gradient(45deg, rgba(0,0,0,0.14) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.14) 75%);
+    background-size:88px 88px;
+    background-position:0 0, 44px 44px;
+    min-height:100vh;
+    padding:48px 16px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+  .flyer{
+    background:var(--ivory);
+    border:1px solid var(--line);
+    border-radius:2px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.35);
+    overflow:hidden;
+  }
+  header{
+    background:var(--board-darker);
+    color:var(--ivory);
+    padding:36px 40px 30px;
+    position:relative;
+    text-align:center;
+  }
+  header .knight{width:46px;height:46px;margin:0 auto 14px;display:block;}
+  header .knight path{fill:var(--brass-light);}
+  h1{
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    font-size:30px;
+    font-weight:600;
+    margin:0 0 8px;
+    letter-spacing:0.3px;
+  }
+  header p.tagline{
+    margin:0;
+    font-size:14px;
+    color:#C9C0AC;
+  }
+  .body-pad{padding:36px 40px 40px;}
+  .section-title{
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    font-size:18px;
+    font-weight:600;
+    margin:0 0 4px;
+    color:var(--walnut);
+  }
+  .section-sub{
+    font-size:13px;
+    color:var(--walnut-soft);
+    margin:0 0 20px;
+  }
+  form .field{margin-bottom:16px;}
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:6px;
+    color:var(--walnut);
+  }
+  input[type=text], input[type=number], select{
+    width:100%;
+    padding:10px 12px;
+    font-size:15px;
+    border:1px solid #C9BC97;
+    border-radius:3px;
+    background:#FFFDF8;
+    color:var(--walnut);
+    font-family:inherit;
+  }
+  input:focus, select:focus{
+    outline:none;
+    border-color:var(--brass);
+    box-shadow:0 0 0 3px rgba(169,132,63,0.18);
+  }
+  .row2{display:flex;gap:14px;}
+  .row2 > div{flex:1;}
+  .hint{font-size:12px;color:var(--walnut-soft);margin-top:5px;}
+  .error-text{font-size:12.5px;color:var(--burgundy);margin-top:5px;display:none;}
+  .field.invalid input, .field.invalid select{border-color:var(--burgundy);}
+  .field.invalid .error-text{display:block;}
+  button.submit{
+    width:100%;
+    background:var(--board-darker);
+    color:var(--ivory);
+    border:none;
+    padding:13px 16px;
+    font-size:15px;
+    font-weight:600;
+    border-radius:3px;
+    cursor:pointer;
+    margin-top:6px;
+    font-family:inherit;
+    letter-spacing:0.2px;
+  }
+  button.submit:hover{background:#0D160F;}
+  button.submit:disabled{opacity:0.6;cursor:default;}
+  .banner{
+    display:none;
+    padding:12px 14px;
+    border-radius:3px;
+    font-size:14px;
+    margin-bottom:18px;
+  }
+  .banner.success{display:block;background:#E4EEE0;color:#33512E;border:1px solid #B9D2AF;}
+  .banner.fail{display:block;background:var(--burgundy-light);color:var(--burgundy);border:1px solid #E0BEC2;}
+  .divider{border:none;border-top:1px solid var(--line);margin:34px 0;}
+  .counts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+  .pill{
+    font-size:12.5px;
+    font-weight:600;
+    padding:5px 11px;
+    border-radius:20px;
+    background:var(--ivory-2);
+    border:1px solid var(--line);
+    color:var(--walnut);
+  }
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{
+    text-align:left;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    color:var(--walnut-soft);
+    font-weight:600;
+    padding:0 10px 8px;
+    border-bottom:1px solid var(--line);
+  }
+  td{padding:9px 10px;border-bottom:1px solid #E4DAC0;}
+  tr:last-child td{border-bottom:none;}
+  .empty-roster{font-size:13.5px;color:var(--walnut-soft);padding:10px 2px;}
+  .foot-links{text-align:center;margin-top:26px;}
+  .foot-links button{
+    background:none;
+    border:none;
+    color:var(--walnut-soft);
+    font-size:12.5px;
+    cursor:pointer;
+    text-decoration:underline;
+    font-family:inherit;
+    padding:4px;
+  }
+  .organizer{
+    display:none;
+    margin-top:18px;
+    padding:18px;
+    background:var(--ivory-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+  }
+  .organizer.open{display:block;}
+  .organizer h3{
+    font-size:14px;
+    margin:0 0 10px;
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  }
+  .organizer .field{margin-bottom:12px;}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;}
+  .btn-sm{
+    font-size:13px;
+    padding:8px 14px;
+    border-radius:3px;
+    border:1px solid #C9BC97;
+    background:#FFFDF8;
+    cursor:pointer;
+    font-family:inherit;
+    color:var(--walnut);
+  }
+  .btn-sm.danger{color:var(--burgundy);border-color:#D9AEB4;}
+  .btn-sm:hover{background:var(--ivory);}
+  .loading{text-align:center;padding:30px;color:var(--walnut-soft);font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="flyer">
+    <header>
+      <svg class="knight" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M75 88 H25 L27 76 Q30 70 27 62 L20 60 Q14 58 15 50 Q22 30 40 20 Q37 15 41 12 Q45 9 48 13 Q58 12 64 20 Q72 28 70 40 L74 55 Q76 62 72 68 L73 76 Z"/>
+      </svg>
+      <h1>Bear Library Chess Tournament</h1>
+      <p class="tagline">Registration &mdash; capture your name, USCF rating, and section</p>
+    </header>
+    <div class="body-pad">
+
+      <div id="banner" class="banner"></div>
+
+      <div class="section-title">Enter the tournament</div>
+      <p class="section-sub">Fields marked required must be filled before you can register.</p>
+
+      <form id="regForm" novalidate>
+        <div class="field" id="f-name">
+          <label for="name">Full name *</label>
+          <input type="text" id="name" placeholder="Magnus Carlsen">
+          <div class="error-text">Enter your full name.</div>
+        </div>
+
+        <div class="row2">
+          <div class="field" id="f-rating">
+            <label for="rating">USCF rating *</label>
+            <input type="number" id="rating" placeholder="e.g. 850" min="0" max="3000" step="1">
+            <div class="error-text">Enter a rating between 0 and 3000.</div>
+          </div>
+          <div class="field" id="f-uscfid">
+            <label for="uscfid">USCF ID (optional)</label>
+            <input type="text" id="uscfid" placeholder="e.g. 12345678">
+          </div>
+        </div>
+
+        <div class="field" id="f-category">
+          <label for="category">Category *</label>
+          <select id="category"><option value="">Loading categories&hellip;</option></select>
+          <div class="error-text">Choose a category.</div>
+        </div>
+
+        <button type="submit" class="submit" id="submitBtn">Register for the tournament</button>
+      </form>
+
+      <hr class="divider">
+
+      <div class="section-title">Current roster</div>
+      <p class="section-sub" id="rosterSub">See who else has registered so far.</p>
+
+      <div id="countsWrap" class="counts"></div>
+      <div id="rosterWrap"><div class="loading">Loading roster&hellip;</div></div>
+
+      <div class="foot-links">
+        <button id="toggleOrganizer" type="button">Organizer settings</button>
+      </div>
+
+      <div class="organizer" id="organizerPanel">
+        <h3>Organizer settings</h3>
+        <div class="field">
+          <label for="catInput">Categories (comma separated)</label>
+          <input type="text" id="catInput" placeholder="U400, U600, U1000, U1500, Open">
+          <div class="hint">This changes the options everyone sees on the registration form.</div>
+        </div>
+        <div class="btnrow">
+          <button class="btn-sm" id="saveCats" type="button">Save categories</button>
+          <button class="btn-sm" id="exportCsv" type="button">Export roster as CSV</button>
+          <button class="btn-sm danger" id="clearRoster" type="button">Clear all registrations</button>
+        </div>
+        <div id="orgMsg" class="hint" style="margin-top:10px;"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Paste the URL you get after deploying apps-script-backend.gs as a Web App.
+  // It looks like: https://script.google.com/macros/s/AKfycb.../exec
+  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxmSjNnsl76mQ8Jt_Blph2R8qniYtRufBwVEZ9xaZozUi3Wkqgi5ySWfUKkB55sgX1eA/exec";
+
+  var DEFAULT_CATEGORIES = ["U400","U600","U1000","U1500","Open"];
+  var state = { categories: DEFAULT_CATEGORIES.slice(), entries: [] };
+
+  var els = {
+    banner: document.getElementById("banner"),
+    form: document.getElementById("regForm"),
+    name: document.getElementById("name"),
+    rating: document.getElementById("rating"),
+    uscfid: document.getElementById("uscfid"),
+    category: document.getElementById("category"),
+    submitBtn: document.getElementById("submitBtn"),
+    countsWrap: document.getElementById("countsWrap"),
+    rosterWrap: document.getElementById("rosterWrap"),
+    toggleOrganizer: document.getElementById("toggleOrganizer"),
+    organizerPanel: document.getElementById("organizerPanel"),
+    catInput: document.getElementById("catInput"),
+    saveCats: document.getElementById("saveCats"),
+    exportCsv: document.getElementById("exportCsv"),
+    clearRoster: document.getElementById("clearRoster"),
+    orgMsg: document.getElementById("orgMsg")
+  };
+
+  function showBanner(msg, kind){
+    els.banner.textContent = msg;
+    els.banner.className = "banner " + kind;
+    if(kind === "success"){
+      setTimeout(function(){ els.banner.className = "banner"; }, 5000);
+    }
+  }
+
+  function clearFieldErrors(){
+    ["f-name","f-rating","f-category"].forEach(function(id){
+      document.getElementById(id).classList.remove("invalid");
+    });
+  }
+
+  function renderCategoryOptions(){
+    els.category.innerHTML = "";
+    var placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Select a category";
+    els.category.appendChild(placeholder);
+    state.categories.forEach(function(c){
+      var opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      els.category.appendChild(opt);
+    });
+    els.catInput.value = state.categories.join(", ");
+  }
+
+  function renderRoster(){
+    var entries = state.entries.slice().sort(function(a,b){
+      if(a.category === b.category) return (a.rating||0) - (b.rating||0);
+      return a.category.localeCompare(b.category);
+    });
+
+    var counts = {};
+    entries.forEach(function(e){ counts[e.category] = (counts[e.category]||0) + 1; });
+    els.countsWrap.innerHTML = "";
+    if(entries.length === 0){
+      var p = document.createElement("span");
+      p.className = "pill";
+      p.textContent = "No registrations yet";
+      els.countsWrap.appendChild(p);
+    } else {
+      Object.keys(counts).sort().forEach(function(cat){
+        var pill = document.createElement("span");
+        pill.className = "pill";
+        pill.textContent = cat + " \u00b7 " + counts[cat];
+        els.countsWrap.appendChild(pill);
+      });
+    }
+
+    if(entries.length === 0){
+      els.rosterWrap.innerHTML = '<div class="empty-roster">Be the first to register above.</div>';
+      return;
+    }
+
+    var html = '<table><thead><tr><th>Name</th><th>Rating</th><th>Category</th></tr></thead><tbody>';
+    entries.forEach(function(e){
+      html += "<tr><td>" + escapeHtml(e.name) + "</td><td>" + escapeHtml(String(e.rating)) + "</td><td>" + escapeHtml(e.category) + "</td></tr>";
+    });
+    html += "</tbody></table>";
+    els.rosterWrap.innerHTML = html;
+  }
+
+  function escapeHtml(str){
+    var d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function backendConfigured(){
+    return typeof APPS_SCRIPT_URL === "string"
+      && APPS_SCRIPT_URL.indexOf("https://script.google.com/") === 0;
+  }
+
+  async function fetchRoster(){
+    try{
+      var res = await fetch(APPS_SCRIPT_URL, { method: "GET" });
+      if(!res.ok) return null;
+      var data = await res.json();
+      return data;
+    }catch(e){
+      return null;
+    }
+  }
+
+  async function postAction(payload){
+    try{
+      var res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) return null;
+      var data = await res.json();
+      return data;
+    }catch(e){
+      return null;
+    }
+  }
+
+  async function loadAll(){
+    if(!backendConfigured()){
+      renderCategoryOptions();
+      renderRoster();
+      showBanner("This page isn't connected to a spreadsheet yet, so registrations won't be saved.", "fail");
+      return;
+    }
+
+    var data = await fetchRoster();
+    if(data){
+      if(Array.isArray(data.categories) && data.categories.length){
+        state.categories = data.categories;
+      }
+      if(Array.isArray(data.entries)){
+        state.entries = data.entries;
+      }
+    } else {
+      showBanner("Couldn't reach the spreadsheet right now. Showing default settings.", "fail");
+    }
+
+    renderCategoryOptions();
+    renderRoster();
+  }
+
+  els.form.addEventListener("submit", async function(ev){
+    ev.preventDefault();
+    clearFieldErrors();
+
+    var name = els.name.value.trim();
+    var ratingRaw = els.rating.value.trim();
+    var rating = ratingRaw === "" ? NaN : Number(ratingRaw);
+    var category = els.category.value;
+    var uscfid = els.uscfid.value.trim();
+
+    var hasError = false;
+    if(!name){
+      document.getElementById("f-name").classList.add("invalid");
+      hasError = true;
+    }
+    if(ratingRaw === "" || isNaN(rating) || rating < 0 || rating > 3000){
+      document.getElementById("f-rating").classList.add("invalid");
+      hasError = true;
+    }
+    if(!category){
+      document.getElementById("f-category").classList.add("invalid");
+      hasError = true;
+    }
+    if(hasError) return;
+
+    els.submitBtn.disabled = true;
+    els.submitBtn.textContent = "Registering\u2026";
+
+    var result = await postAction({
+      action: "register",
+      name: name,
+      rating: rating,
+      category: category,
+      uscfid: uscfid || null
+    });
+
+    if(result && result.ok){
+      showBanner("You're registered for " + category + ". Good luck!", "success");
+      els.form.reset();
+      await loadAll();
+    } else {
+      showBanner("Registration failed to save. Please try again.", "fail");
+    }
+
+    els.submitBtn.disabled = false;
+    els.submitBtn.textContent = "Register for the tournament";
+  });
+
+  els.toggleOrganizer.addEventListener("click", function(){
+    els.organizerPanel.classList.toggle("open");
+  });
+
+  els.saveCats.addEventListener("click", async function(){
+    var raw = els.catInput.value.trim();
+    var list = raw.split(",").map(function(s){ return s.trim(); }).filter(Boolean);
+    if(list.length === 0){
+      els.orgMsg.textContent = "Enter at least one category.";
+      return;
+    }
+    var result = await postAction({ action: "saveCategories", categories: list });
+    if(result && result.ok){
+      state.categories = list;
+      renderCategoryOptions();
+      els.orgMsg.textContent = "Categories saved.";
+    } else {
+      els.orgMsg.textContent = "Could not save categories. Try again.";
+    }
+  });
+
+  els.exportCsv.addEventListener("click", function(){
+    if(state.entries.length === 0){
+      els.orgMsg.textContent = "No registrations to export yet.";
+      return;
+    }
+    var rows = [["Name","USCF Rating","Category","USCF ID","Registered At"]];
+    state.entries.forEach(function(e){
+      rows.push([e.name, e.rating, e.category, e.uscfid || "", e.timestamp]);
+    });
+    var csv = rows.map(function(r){
+      return r.map(function(v){
+        var s = String(v == null ? "" : v);
+        if(s.indexOf(",") !== -1 || s.indexOf('"') !== -1){
+          s = '"' + s.replace(/"/g, '""') + '"';
+        }
+        return s;
+      }).join(",");
+    }).join("\n");
+    var blob = new Blob([csv], {type: "text/csv"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "tournament-roster.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    els.orgMsg.textContent = "Roster exported.";
+  });
+
+  els.clearRoster.addEventListener("click", async function(){
+    if(!confirm("Delete all registrations? This cannot be undone.")) return;
+    var result = await postAction({ action: "clear" });
+    if(result && result.ok){
+      await loadAll();
+      els.orgMsg.textContent = "Roster cleared.";
+    } else {
+      els.orgMsg.textContent = "Could not clear roster. Try again.";
+    }
+  });
