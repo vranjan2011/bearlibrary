@@ -153,45 +153,6 @@
   td{padding:9px 10px;border-bottom:1px solid #E4DAC0;}
   tr:last-child td{border-bottom:none;}
   .empty-roster{font-size:13.5px;color:var(--walnut-soft);padding:10px 2px;}
-  .foot-links{text-align:center;margin-top:26px;}
-  .foot-links button{
-    background:none;
-    border:none;
-    color:var(--walnut-soft);
-    font-size:12.5px;
-    cursor:pointer;
-    text-decoration:underline;
-    font-family:inherit;
-    padding:4px;
-  }
-  .organizer{
-    display:none;
-    margin-top:18px;
-    padding:18px;
-    background:var(--ivory-2);
-    border:1px solid var(--line);
-    border-radius:3px;
-  }
-  .organizer.open{display:block;}
-  .organizer h3{
-    font-size:14px;
-    margin:0 0 10px;
-    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-  }
-  .organizer .field{margin-bottom:12px;}
-  .btnrow{display:flex;gap:10px;flex-wrap:wrap;}
-  .btn-sm{
-    font-size:13px;
-    padding:8px 14px;
-    border-radius:3px;
-    border:1px solid #C9BC97;
-    background:#FFFDF8;
-    cursor:pointer;
-    font-family:inherit;
-    color:var(--walnut);
-  }
-  .btn-sm.danger{color:var(--burgundy);border-color:#D9AEB4;}
-  .btn-sm:hover{background:var(--ivory);}
   .loading{text-align:center;padding:30px;color:var(--walnut-soft);font-size:14px;}
 </style>
 </head>
@@ -206,23 +167,23 @@
       <p class="tagline">Registration &mdash; capture your name, USCF rating, and section</p>
     </header>
     <div class="body-pad">
- 
+
       <div id="banner" class="banner"></div>
- 
+
       <div class="section-title">Enter the tournament</div>
       <p class="section-sub">Fields marked required must be filled before you can register.</p>
- 
+
       <form id="regForm" novalidate>
         <div class="field" id="f-name">
           <label for="name">Full name *</label>
-          <input type="text" id="name" placeholder="Magnus Carlsen">
+          <input type="text" id="name" placeholder="Enter your full name">
           <div class="error-text">Enter your full name.</div>
         </div>
- 
+
         <div class="row2">
           <div class="field" id="f-rating">
             <label for="rating">USCF rating *</label>
-            <input type="number" id="rating" placeholder="e.g. 850" min="0" max="3000" step="1">
+            <input type="number" id="rating" placeholder="e.g. 500" min="0" max="3000" step="1">
             <div class="error-text">Enter a rating between 0 and 3000.</div>
           </div>
           <div class="field" id="f-uscfid">
@@ -230,56 +191,37 @@
             <input type="text" id="uscfid" placeholder="e.g. 12345678">
           </div>
         </div>
- 
+
         <div class="field" id="f-category">
           <label for="category">Category *</label>
           <select id="category"><option value="">Loading categories&hellip;</option></select>
           <div class="error-text">Choose a category.</div>
         </div>
- 
+
         <button type="submit" class="submit" id="submitBtn">Register for the tournament</button>
       </form>
- 
+
       <hr class="divider">
- 
+
       <div class="section-title">Current roster</div>
       <p class="section-sub" id="rosterSub">See who else has registered so far.</p>
- 
+
       <div id="countsWrap" class="counts"></div>
       <div id="rosterWrap"><div class="loading">Loading roster&hellip;</div></div>
- 
-      <div class="foot-links">
-        <button id="toggleOrganizer" type="button">Organizer settings</button>
-      </div>
- 
-      <div class="organizer" id="organizerPanel">
-        <h3>Organizer settings</h3>
-        <div class="field">
-          <label for="catInput">Categories (comma separated)</label>
-          <input type="text" id="catInput" placeholder="U400, U600, U1000, U1500, Open">
-          <div class="hint">This changes the options everyone sees on the registration form.</div>
-        </div>
-        <div class="btnrow">
-          <button class="btn-sm" id="saveCats" type="button">Save categories</button>
-          <button class="btn-sm" id="exportCsv" type="button">Export roster as CSV</button>
-          <button class="btn-sm danger" id="clearRoster" type="button">Clear all registrations</button>
-        </div>
-        <div id="orgMsg" class="hint" style="margin-top:10px;"></div>
-      </div>
- 
+
     </div>
   </div>
 </div>
- 
+
 <script>
 (function(){
   // Paste the URL you get after deploying apps-script-backend.gs as a Web App.
   // It looks like: https://script.google.com/macros/s/AKfycb.../exec
   var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxmSjNnsl76mQ8Jt_Blph2R8qniYtRufBwVEZ9xaZozUi3Wkqgi5ySWfUKkB55sgX1eA/exec";
- 
+
   var DEFAULT_CATEGORIES = ["U400","U600","U1000","U1500","Open"];
   var state = { categories: DEFAULT_CATEGORIES.slice(), entries: [] };
- 
+
   var els = {
     banner: document.getElementById("banner"),
     form: document.getElementById("regForm"),
@@ -289,16 +231,9 @@
     category: document.getElementById("category"),
     submitBtn: document.getElementById("submitBtn"),
     countsWrap: document.getElementById("countsWrap"),
-    rosterWrap: document.getElementById("rosterWrap"),
-    toggleOrganizer: document.getElementById("toggleOrganizer"),
-    organizerPanel: document.getElementById("organizerPanel"),
-    catInput: document.getElementById("catInput"),
-    saveCats: document.getElementById("saveCats"),
-    exportCsv: document.getElementById("exportCsv"),
-    clearRoster: document.getElementById("clearRoster"),
-    orgMsg: document.getElementById("orgMsg")
+    rosterWrap: document.getElementById("rosterWrap")
   };
- 
+
   function showBanner(msg, kind){
     els.banner.textContent = msg;
     els.banner.className = "banner " + kind;
@@ -306,13 +241,13 @@
       setTimeout(function(){ els.banner.className = "banner"; }, 5000);
     }
   }
- 
+
   function clearFieldErrors(){
     ["f-name","f-rating","f-category"].forEach(function(id){
       document.getElementById(id).classList.remove("invalid");
     });
   }
- 
+
   function renderCategoryOptions(){
     els.category.innerHTML = "";
     var placeholder = document.createElement("option");
@@ -325,15 +260,14 @@
       opt.textContent = c;
       els.category.appendChild(opt);
     });
-    els.catInput.value = state.categories.join(", ");
   }
- 
+
   function renderRoster(){
     var entries = state.entries.slice().sort(function(a,b){
       if(a.category === b.category) return (a.rating||0) - (b.rating||0);
       return a.category.localeCompare(b.category);
     });
- 
+
     var counts = {};
     entries.forEach(function(e){ counts[e.category] = (counts[e.category]||0) + 1; });
     els.countsWrap.innerHTML = "";
@@ -350,12 +284,12 @@
         els.countsWrap.appendChild(pill);
       });
     }
- 
+
     if(entries.length === 0){
       els.rosterWrap.innerHTML = '<div class="empty-roster">Be the first to register above.</div>';
       return;
     }
- 
+
     var html = '<table><thead><tr><th>Name</th><th>Rating</th><th>Category</th></tr></thead><tbody>';
     entries.forEach(function(e){
       html += "<tr><td>" + escapeHtml(e.name) + "</td><td>" + escapeHtml(String(e.rating)) + "</td><td>" + escapeHtml(e.category) + "</td></tr>";
@@ -363,18 +297,18 @@
     html += "</tbody></table>";
     els.rosterWrap.innerHTML = html;
   }
- 
+
   function escapeHtml(str){
     var d = document.createElement("div");
     d.textContent = str;
     return d.innerHTML;
   }
- 
+
   function backendConfigured(){
     return typeof APPS_SCRIPT_URL === "string"
       && APPS_SCRIPT_URL.indexOf("https://script.google.com/") === 0;
   }
- 
+
   async function fetchRoster(){
     try{
       var res = await fetch(APPS_SCRIPT_URL, { method: "GET" });
@@ -385,7 +319,7 @@
       return null;
     }
   }
- 
+
   async function postAction(payload){
     try{
       var res = await fetch(APPS_SCRIPT_URL, {
@@ -400,7 +334,7 @@
       return null;
     }
   }
- 
+
   async function loadAll(){
     if(!backendConfigured()){
       renderCategoryOptions();
@@ -408,7 +342,7 @@
       showBanner("This page isn't connected to a spreadsheet yet, so registrations won't be saved.", "fail");
       return;
     }
- 
+
     var data = await fetchRoster();
     if(data){
       if(Array.isArray(data.categories) && data.categories.length){
@@ -420,21 +354,21 @@
     } else {
       showBanner("Couldn't reach the spreadsheet right now. Showing default settings.", "fail");
     }
- 
+
     renderCategoryOptions();
     renderRoster();
   }
- 
+
   els.form.addEventListener("submit", async function(ev){
     ev.preventDefault();
     clearFieldErrors();
- 
+
     var name = els.name.value.trim();
     var ratingRaw = els.rating.value.trim();
     var rating = ratingRaw === "" ? NaN : Number(ratingRaw);
     var category = els.category.value;
     var uscfid = els.uscfid.value.trim();
- 
+
     var hasError = false;
     if(!name){
       document.getElementById("f-name").classList.add("invalid");
@@ -449,10 +383,10 @@
       hasError = true;
     }
     if(hasError) return;
- 
+
     els.submitBtn.disabled = true;
     els.submitBtn.textContent = "Registering\u2026";
- 
+
     var result = await postAction({
       action: "register",
       name: name,
@@ -460,7 +394,7 @@
       category: category,
       uscfid: uscfid || null
     });
- 
+
     if(result && result.ok){
       showBanner("You're registered for " + category + ". Good luck!", "success");
       els.form.reset();
@@ -468,73 +402,11 @@
     } else {
       showBanner("Registration failed to save. Please try again.", "fail");
     }
- 
+
     els.submitBtn.disabled = false;
     els.submitBtn.textContent = "Register for the tournament";
   });
- 
-  els.toggleOrganizer.addEventListener("click", function(){
-    els.organizerPanel.classList.toggle("open");
-  });
- 
-  els.saveCats.addEventListener("click", async function(){
-    var raw = els.catInput.value.trim();
-    var list = raw.split(",").map(function(s){ return s.trim(); }).filter(Boolean);
-    if(list.length === 0){
-      els.orgMsg.textContent = "Enter at least one category.";
-      return;
-    }
-    var result = await postAction({ action: "saveCategories", categories: list });
-    if(result && result.ok){
-      state.categories = list;
-      renderCategoryOptions();
-      els.orgMsg.textContent = "Categories saved.";
-    } else {
-      els.orgMsg.textContent = "Could not save categories. Try again.";
-    }
-  });
- 
-  els.exportCsv.addEventListener("click", function(){
-    if(state.entries.length === 0){
-      els.orgMsg.textContent = "No registrations to export yet.";
-      return;
-    }
-    var rows = [["Name","USCF Rating","Category","USCF ID","Registered At"]];
-    state.entries.forEach(function(e){
-      rows.push([e.name, e.rating, e.category, e.uscfid || "", e.timestamp]);
-    });
-    var csv = rows.map(function(r){
-      return r.map(function(v){
-        var s = String(v == null ? "" : v);
-        if(s.indexOf(",") !== -1 || s.indexOf('"') !== -1){
-          s = '"' + s.replace(/"/g, '""') + '"';
-        }
-        return s;
-      }).join(",");
-    }).join("\n");
-    var blob = new Blob([csv], {type: "text/csv"});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = "tournament-roster.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    els.orgMsg.textContent = "Roster exported.";
-  });
- 
-  els.clearRoster.addEventListener("click", async function(){
-    if(!confirm("Delete all registrations? This cannot be undone.")) return;
-    var result = await postAction({ action: "clear" });
-    if(result && result.ok){
-      await loadAll();
-      els.orgMsg.textContent = "Roster cleared.";
-    } else {
-      els.orgMsg.textContent = "Could not clear roster. Try again.";
-    }
-  });
- 
+
   loadAll();
 })();
 </script>
